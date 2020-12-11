@@ -15,6 +15,7 @@ import 'package:html/parser.dart' as htmlparser;
 import 'package:webview_flutter/webview_flutter.dart';
 
 typedef OnTap = void Function(String url);
+typedef OnLinkTap = void Function(String url, Map<String, String> attributes);
 typedef CustomRender = Widget Function(
   RenderContext context,
   Widget parsedChild,
@@ -24,7 +25,7 @@ typedef CustomRender = Widget Function(
 
 class HtmlParser extends StatelessWidget {
   final String htmlData;
-  final OnTap onLinkTap;
+  final OnLinkTap onLinkTap;
   final OnTap onImageTap;
   final ImageErrorListener onImageError;
   final bool shrinkWrap;
@@ -334,7 +335,7 @@ class HtmlParser extends StatelessWidget {
                 MultipleTapGestureRecognizer>(
               () => MultipleTapGestureRecognizer(),
               (instance) {
-                instance..onTap = () => onLinkTap?.call(tree.href);
+                instance..onTap = () => onLinkTap?.call(tree.href, tree.attributes);
               },
             ),
           },

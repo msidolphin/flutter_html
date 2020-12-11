@@ -2,6 +2,8 @@ import 'dart:ui';
 
 import 'package:csslib/visitor.dart' as css;
 import 'package:csslib/parser.dart' as cssparser;
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_html/style.dart';
 
 Style declarationsToStyle(Map<String, List<css.Expression>> declarations) {
@@ -18,10 +20,78 @@ Style declarationsToStyle(Map<String, List<css.Expression>> declarations) {
       case 'text-align':
         style.textAlign = ExpressionMapping.expressionToTextAlign(value.first);
         break;
-
+      case 'font-weight':
+        if (value.first is css.NumberTerm) {
+          css.NumberTerm size = value.first;
+          style.fontWeight = FontWeight.values[(size.value / 100).toInt()];
+        }
+        /// TODO
+        break;
+      case 'font-size':
+        String fontSize = value.first.toString().replaceAll("px", "")
+          .replaceAll("em", "")
+          .replaceAll("rem", "")
+          .replaceAll("%", "")
+          .replaceAll("vw", "")
+          .replaceAll("vh", "");
+        style.fontSize = FontSize(double.parse(fontSize));
+        break;
+      case 'width':
+        String width = value.first.toString().replaceAll("px", "")
+            .replaceAll("em", "")
+            .replaceAll("rem", "")
+            .replaceAll("%", "")
+            .replaceAll("vw", "")
+            .replaceAll("vh", "");
+        style.width = double.parse(width);
+        break;
+      case 'margin':
+        style.margin = getPaddingOrMargin(value);
+        print(style.margin);
+        break;
+      case 'padding':
+        style.padding = getPaddingOrMargin(value);
+        break;
     }
   });
   return style;
+}
+
+EdgeInsetsGeometry getPaddingOrMargin(List<css.Expression> style) {
+  double top = 0;
+  double bottom = 0;
+  double left = 0;
+  double right = 0;
+  if (style.length == 1) {
+    top = bottom = left = right = double.parse(erasureCssUnit(style.first.toString()));
+  } else if (style.length == 2) {
+    top = bottom = double.parse(erasureCssUnit(style[0].toString()));
+    left = right = double.parse(erasureCssUnit(style[1].toString()));
+  } else if (style.length == 3) {
+    top = double.parse(erasureCssUnit(style[0].toString()));
+    left = right = double.parse(erasureCssUnit(style[1].toString()));
+    bottom = double.parse(erasureCssUnit(style[2].toString()));
+  } else {
+    top = double.parse(erasureCssUnit(style[0].toString()));
+    right = double.parse(erasureCssUnit(style[1].toString()));
+    bottom = double.parse(erasureCssUnit(style[2].toString()));
+    left = double.parse(erasureCssUnit(style[1].toString()));
+  }
+  return EdgeInsets.only(
+    left: left,
+    top: top,
+    right: right,
+    bottom: bottom
+  );
+}
+
+String erasureCssUnit(String style) {
+  return style.toString().replaceAll("px", "")
+      .replaceAll("em", "")
+      .replaceAll("rem", "")
+      .replaceAll("%", "")
+      .replaceAll("vw", "")
+      .replaceAll("vh", "");
 }
 
 Style inlineCSSToStyle(String inlineStyle) {
